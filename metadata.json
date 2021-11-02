@@ -2,9 +2,11 @@
   "name": "bryxxit-onepassword_lookup",
   "version": "0.1.0",
   "author": "negast",
-  "summary": "",
+  "summary": "Hiera backend for onepassword",
   "license": "MIT",
-  "source": "",
+  "source": "https://github.com/Bryxxit/bryxxit-onepassword_lookup",
+  "project_page": "https://github.com/Bryxxit/bryxxit-onepassword_lookup",
+  "issues_url": "https://github.com/Bryxxit/bryxxit-onepassword_lookup/issues",
   "dependencies": [
 
   ],
