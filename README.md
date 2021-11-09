@@ -27,18 +27,13 @@ hierarchy:
 
 next try looking up a key
 ```
-root@puppet:/# puppet lookup example  --node ubuntu1 --explain 
-Searching for "example"
-  Global Data Provider (hiera configuration version 5)
-    Using configuration "/etc/puppetlabs/puppet/hiera.yaml"
-    No such key: "example"
-  Environment Data Provider (hiera configuration version 5)
-    Using configuration "/etc/puppetlabs/code/environments/production/hiera.yaml"n/hiera.yaml"
-    Hierarchy entry "common"                                        .yaml"
-      Path "/etc/puppetlabs/code/environments/production/data/common.yaml"
-        Original path: "common.yaml"
-        No such key: "example"
-    Hierarchy entry "Secret data"
-      Found key: "example" value: ""example"
+root@puppet:/# puppet lookup mynote
+  note content
+root@puppet:/# puppet lookup dev-db-login
+---
+username: test
+password: test
+root@puppet:/# puppet lookup dev-db-pass
+--- testpass
 ```
 

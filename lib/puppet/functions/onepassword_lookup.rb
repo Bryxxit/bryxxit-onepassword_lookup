@@ -49,7 +49,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     if var.nil?
       context.not_found
     else
-      context.cache(key, get_password_from_item(var))
+      context.cache(key, get_password_from_item(options['url'], options['token'], var))
     end
     
     # if raw_data.nil?
@@ -146,16 +146,50 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     var
   end
 
-  def get_password_from_item(item)
-    password = nil
+  
+  def get_file_content(base_url, token, vault_id, item_id, file_id)
+    url = URI(base_url + "/v1/vaults/" + vault_id + "/items/" + item_id + "/files/" + file_id + "/content")
+    http = Net::HTTP.new(url.host, url.port)
+    request = Net::HTTP::Get.new(url)
+    request["authorization"] = 'Authorization: Bearer ' + token
+    # request["content-type"] = 'application/json'
+    request["cache-control"] = 'no-cache'
+    response = http.request(request)
+    data = response.read_body
+    data
+  end
+
+  def get_password_from_item(base_url, token, item)
+    content = nil
     unless item.nil?
-        item['fields'].each do |field|
-            if field['id'] == "password"
-                password = field['value']
+        case item['category']
+        when 'DOCUMENT'
+            file_id = item['files'][0]['id']
+            content = get_file_content(base_url, token, item['vault']['id'], item['id'], file_id)
+        when 'LOGIN'
+            username = ""
+            password = ""
+            item['fields'].each do |field|
+                if field['id'] == "username"
+                    username = field['value']
+                end
+                if field['id'] == "password"
+                    password = field['value']
+                end
+            end
+            content = { "username" => username, "password" => password }
+        else
+            item['fields'].each do |field|
+
+                if field['id'] == "password"
+                    content = field['value']
+                end
             end
         end
+            
     end
-    password
+    content
   end
+
 
 end
