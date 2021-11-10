@@ -131,6 +131,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
 
   def get_vault_item_by_name(base_url, token, vault_name, item_name)
     vault = get_vault_by_name(base_url, token, vault_name)
+    vars = []
     var = nil
     unless vault.nil? 
         items = get_vault_items(base_url,token, vault['id'], false)
@@ -139,11 +140,16 @@ Puppet::Functions.create_function(:onepassword_lookup) do
                 var1 = get_vault_item(base_url, token,vault['id'], item['id'], false)
                 unless var1.nil?
                     var = var1
+                    vars.append(var1)
                 end
             end
         end
     end
-    var
+    if vars.length() > 1
+        vars
+    else
+        var
+    end
   end
 
   
@@ -159,36 +165,52 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     data
   end
 
-  def get_password_from_item(base_url, token, item)
-    content = nil
-    unless item.nil?
-        case item['category']
-        when 'DOCUMENT'
-            file_id = item['files'][0]['id']
-            content = get_file_content(base_url, token, item['vault']['id'], item['id'], file_id)
-        when 'LOGIN'
-            username = ""
-            password = ""
-            item['fields'].each do |field|
-                if field['id'] == "username"
-                    username = field['value']
-                end
-                if field['id'] == "password"
-                    password = field['value']
-                end
-            end
-            content = { "username" => username, "password" => password }
-        else
-            item['fields'].each do |field|
+  def get_values_from_items(base_url, token, items)
+      array = []
+      items.each do |item|
+          array.append(get_value_from_item(base_url, token, item))
+      end
+      array
+  end
 
-                if field['id'] == "password"
-                    content = field['value']
-                end
-            end
-        end
-            
-    end
-    content
+  def get_value_from_item(base_url, token, item)
+      content = nil
+      unless item.nil?
+          case item['category']
+          when 'DOCUMENT'
+              file_id = item['files'][0]['id']
+              content = get_file_content(base_url, token, item['vault']['id'], item['id'], file_id)
+          when 'LOGIN'
+              username = ""
+              password = ""
+              item['fields'].each do |field|
+                  if field['id'] == "username"
+                      username = field['value']
+                  end
+                  if field['id'] == "password"
+                      password = field['value']
+                  end
+              end
+              content = { "username" => username, "password" => password }
+          else
+              item['fields'].each do |field|
+
+                  if field['id'] == "password"
+                      content = field['value']
+                  end
+              end
+          end
+              
+      end
+      content
+  end
+
+  def get_password_from_item(base_url, token, item)
+      if item.is_a? Array
+        get_values_from_items(base_url, token, item)
+      else
+        get_value_from_item(base_url, token, item)
+      end
   end
 
 

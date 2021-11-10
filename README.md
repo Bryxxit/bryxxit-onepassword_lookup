@@ -25,7 +25,7 @@ hierarchy:
       token: 'sometoken'
 ```
 
-next try looking up a key
+next try looking up a key. Note items can have the same title inside onepassword. These are now combined and returned as an array. Does not work yet when multiple vaults are defined.
 ```
 root@puppet:/# puppet lookup mynote
   note content
@@ -35,5 +35,11 @@ username: test
 password: test
 root@puppet:/# puppet lookup dev-db-pass
 --- testpass
+root@puppet:/# puppet lookup dev-db-login2
+---
+- username: test
+  password: test
+- username: web
+  password: web
 ```
 
