@@ -67,10 +67,15 @@ Puppet::Functions.create_function(:onepassword_lookup) do
   def get_vaults(base_url, token, debug)
     url = URI(base_url + "/v1/vaults")
     http = Net::HTTP.new(url.host, url.port)
+    if base_url.start_with?('https')
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     request = Net::HTTP::Get.new(url)
     request["authorization"] = 'Authorization: Bearer ' + token
     request["content-type"] = 'application/json'
     request["cache-control"] = 'no-cache'
+    
     response = http.request(request)
     data = JSON.parse(response.read_body)
     arr = []
@@ -86,6 +91,10 @@ Puppet::Functions.create_function(:onepassword_lookup) do
   def get_vault_items(base_url, token, vault_id, debug)
     url = URI(base_url + "/v1/vaults/" + vault_id + "/items")
     http = Net::HTTP.new(url.host, url.port)
+    if base_url.start_with?('https')
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     request = Net::HTTP::Get.new(url)
     request["authorization"] = 'Authorization: Bearer ' + token
     request["content-type"] = 'application/json'
@@ -105,6 +114,10 @@ Puppet::Functions.create_function(:onepassword_lookup) do
   def get_vault_item(base_url, token, vault_id, item_id, debug)
     url = URI(base_url + "/v1/vaults/" + vault_id + "/items/" + item_id)
     http = Net::HTTP.new(url.host, url.port)
+    if base_url.start_with?('https')
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     request = Net::HTTP::Get.new(url)
     request["authorization"] = 'Authorization: Bearer ' + token
     request["content-type"] = 'application/json'
@@ -156,6 +169,10 @@ Puppet::Functions.create_function(:onepassword_lookup) do
   def get_file_content(base_url, token, vault_id, item_id, file_id)
     url = URI(base_url + "/v1/vaults/" + vault_id + "/items/" + item_id + "/files/" + file_id + "/content")
     http = Net::HTTP.new(url.host, url.port)
+    if base_url.start_with?('https')
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     request = Net::HTTP::Get.new(url)
     request["authorization"] = 'Authorization: Bearer ' + token
     # request["content-type"] = 'application/json'

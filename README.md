@@ -21,7 +21,7 @@ hierarchy:
       vaults: 
         - 'development'
         - 'puppet-common'
-      url: 'http://localhost:8080'
+      url: 'http://localhost:8080' ## you can now also use https
       token: 'sometoken'
 ```
 
