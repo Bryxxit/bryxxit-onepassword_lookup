@@ -49,7 +49,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     if var.nil?
       context.not_found
     else
-      context.cache(key, get_password_from_item(options['url'], options['token'], var))
+      context.cache(key, get_password_from_item(options['url'], options['token'], options['get_all_fields'] || false, var))
     end
     
     # if raw_data.nil?
@@ -182,15 +182,15 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     data
   end
 
-  def get_values_from_items(base_url, token, items)
+  def get_values_from_items(base_url, token, get_all_fields, items)
       array = []
       items.each do |item|
-          array.append(get_value_from_item(base_url, token, item))
+          array.append(get_value_from_item(base_url, token, get_all_fields, item))
       end
       array
   end
 
-  def get_value_from_item(base_url, token, item)
+  def get_value_from_item(base_url, token, get_all_fields, item)
       content = nil
       unless item.nil?
           case item['category']
@@ -198,35 +198,45 @@ Puppet::Functions.create_function(:onepassword_lookup) do
               file_id = item['files'][0]['id']
               content = get_file_content(base_url, token, item['vault']['id'], item['id'], file_id)
           when 'LOGIN'
-              username = ""
-              password = ""
-              item['fields'].each do |field|
-                  if field['id'] == "username"
-                      username = field['value']
-                  end
-                  if field['id'] == "password"
-                      password = field['value']
-                  end
-              end
-              content = { "username" => username, "password" => password }
+            content = get_item_data(item, get_all_fields)
           else
+            if get_all_fields
+              # same as login, return a hash with all fields
+              content = get_item_data(item, get_all_fields)
+            else
               item['fields'].each do |field|
 
                   if field['id'] == "password"
                       content = field['value']
                   end
               end
+            end
           end
               
       end
       content
   end
 
-  def get_password_from_item(base_url, token, item)
+  def get_item_data(item, get_all_fields)
+    content = {}
+    item['fields'].each do |field|
+      # For username/password, trust id.  For the rest, use label:
+      if field['id'] == "username"
+        content['username'] = field['value']
+      elsif field['id'] == "password"
+        content['password'] = field['value']
+      elsif get_all_fields
+        content[field['label']] = field['value']
+      end
+    end
+    content
+  end
+
+  def get_password_from_item(base_url, token, get_all_fields, item)
       if item.is_a? Array
-        get_values_from_items(base_url, token, item)
+        get_values_from_items(base_url, token, get_all_fields, item)
       else
-        get_value_from_item(base_url, token, item)
+        get_value_from_item(base_url, token, get_all_fields, item)
       end
   end
 
