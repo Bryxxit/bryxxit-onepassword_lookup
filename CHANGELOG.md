@@ -1,6 +1,11 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## Release 0.1.4
+**Features**
+added all_fields option from pull request by akomakom 
+
+**Bugfixes**
+none 
 ## Release 0.1.3
 **Features**
 
