@@ -77,13 +77,15 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     request["cache-control"] = 'no-cache'
     
     response = http.request(request)
-    data = JSON.parse(response.read_body)
     arr = []
-    data.each do |vault|
+    if response.kind_of? Net::HTTPSuccess
+      data = JSON.parse(response.read_body)
+      data.each do |vault|
         if debug
             puts vault
         end
         arr.append( { "name" => vault['name'], "id" => vault['id'] })
+      end
     end
     arr
   end
@@ -100,13 +102,15 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     request["content-type"] = 'application/json'
     request["cache-control"] = 'no-cache'
     response = http.request(request)
-    data = JSON.parse(response.read_body)
     arr = []
-    data.each do |item|
+    if response.kind_of? Net::HTTPSuccess
+      data = JSON.parse(response.read_body)
+      data.each do |item|
         if debug
             puts item
         end
         arr.append( { "name" => item['title'], "id" => item['id'] })
+      end
     end
     arr
   end
@@ -123,9 +127,12 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     request["content-type"] = 'application/json'
     request["cache-control"] = 'no-cache'
     response = http.request(request)
-    data = JSON.parse(response.read_body)
-    if debug
-        puts data 
+    data = nil
+    if response.kind_of? Net::HTTPSuccess
+      data = JSON.parse(response.read_body)
+      if debug
+        puts data
+      end
     end
     data
   end
