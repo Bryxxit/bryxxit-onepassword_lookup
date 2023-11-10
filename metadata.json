@@ -1,6 +1,6 @@
 {
   "name": "bryxxit-onepassword_lookup",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "author": "negast",
   "summary": "Hiera backend for onepassword",
   "license": "MIT",

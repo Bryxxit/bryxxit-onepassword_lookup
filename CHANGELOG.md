@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.2.0
+**Features**
+added Fail gracefully if unable to successfully contact 1password connect by justafish
+
 ## Release 0.1.4
 **Features**
 added all_fields option from pull request by akomakom 
