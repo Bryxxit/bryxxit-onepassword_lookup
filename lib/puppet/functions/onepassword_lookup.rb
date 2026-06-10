@@ -12,6 +12,15 @@ Puppet::Functions.create_function(:onepassword_lookup) do
 
   def onepassword_lookup(key, options, context)
     return context.cached_value(key) if context.cache_has_key(key)
+    # if opurls_only is set to true, then we will only look for keys that start with op://, and if the key does not start with op://, we will return not_found.
+    # This allows for using this lookup_key function in hiera.yaml for all lookups, but only actually using it for keys that start with op://, and not having it interfere with other lookups.
+    if options.include?('opurls_only') && options['opurls_only'] == true
+      if not key.start_with?("op://")
+        context.not_found
+        return
+      end
+    end
+
     unless options.include?('vaults') || options.include?('vault')
       #TRANSLATORS 'onepassword_lookup':, 'path', 'paths' 'glob', 'globs', 'mapped_paths', and lookup_key should not be translated
       raise ArgumentError,
@@ -40,6 +49,20 @@ Puppet::Functions.create_function(:onepassword_lookup) do
         vaults_to_search.append(v)
       end
     end
+    # if key=~op://vault/item/field, then we can directly query for the item.  Otherwise, we need to loop through vaults and items to find the right one.
+    if key.start_with?("op://")
+      parts = key[5..-1].split('/')
+      if parts.length != 3
+        raise ArgumentError,
+          _("'onepassword_lookup': If key starts with 'op://', it must be in the format 'op://vault/item/field'")
+      end
+      vaults_to_search = [parts[0]]
+      key = parts[1] # we will search for an item with the name of parts[1], and then return the field with the name of parts[2] from that item.  This allows for direct lookup of items without having to loop through all items in all vaults.  It also allows for lookup of fields other than password, such as username or any custom field.
+      field_to_return = parts[2]
+    else
+      field_to_return = nil
+    end
+
     raw_data = context.cached_value(nil)
     var = nil
     vaults_to_search.each do |vault|
@@ -49,21 +72,24 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     if var.nil?
       context.not_found
     else
-      context.cache(key, get_password_from_item(options['url'], options['token'], options['get_all_fields'] || false, var))
+      if field_to_return        # if the key was in the format op://vault/item/field, then we need to return only the specified field from the item
+          context.cache(key,get_password_from_item(options['url'], options['token'], options['get_all_fields'] || false, var)[ field_to_return ])
+      else
+        context.cache(key, get_password_from_item(options['url'], options['token'], options['get_all_fields'] || false, var))
+      end
     end
-    
+
     # if raw_data.nil?
     #   raw_data = load_data_hash(options, context)
     #   context.cache(nil, raw_data)
     # end
     # context.not_found unless raw_data.include?(key)
     # context.cache(key, vaults_to_search)
-  
   end
 
 
 
-  
+
   def get_vaults(base_url, token, debug)
     url = URI(base_url + "/v1/vaults")
     http = Net::HTTP.new(url.host, url.port)
@@ -75,7 +101,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     request["authorization"] = 'Authorization: Bearer ' + token
     request["content-type"] = 'application/json'
     request["cache-control"] = 'no-cache'
-    
+
     response = http.request(request)
     arr = []
     if response.kind_of? Net::HTTPSuccess
@@ -153,7 +179,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     vault = get_vault_by_name(base_url, token, vault_name)
     vars = []
     var = nil
-    unless vault.nil? 
+    unless vault.nil?
         items = get_vault_items(base_url,token, vault['id'], false)
         items.each do |item|
             if item['name'] == item_name
@@ -172,7 +198,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
     end
   end
 
-  
+
   def get_file_content(base_url, token, vault_id, item_id, file_id)
     url = URI(base_url + "/v1/vaults/" + vault_id + "/items/" + item_id + "/files/" + file_id + "/content")
     http = Net::HTTP.new(url.host, url.port)
@@ -219,7 +245,7 @@ Puppet::Functions.create_function(:onepassword_lookup) do
               end
             end
           end
-              
+
       end
       content
   end
