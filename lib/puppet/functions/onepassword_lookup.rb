@@ -78,13 +78,6 @@ Puppet::Functions.create_function(:onepassword_lookup) do
         context.cache(key, get_password_from_item(options['url'], options['token'], options['get_all_fields'] || false, var))
       end
     end
-
-    # if raw_data.nil?
-    #   raw_data = load_data_hash(options, context)
-    #   context.cache(nil, raw_data)
-    # end
-    # context.not_found unless raw_data.include?(key)
-    # context.cache(key, vaults_to_search)
   end
 
 

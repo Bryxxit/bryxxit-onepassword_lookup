@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 0.2.1
+**Features**
+added support for direct 1Password URL lookups by nur-dmelchers
+
 ## Release 0.2.0
 **Features**
 added Fail gracefully if unable to successfully contact 1password connect by justafish
